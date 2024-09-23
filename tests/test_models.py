@@ -101,6 +101,112 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(new_product.available, product.available)
         self.assertEqual(new_product.category, product.category)
 
-    #
-    # ADD YOUR TEST CASES HERE
-    #
+    def test_read_a_product(self):
+        """Test creating then reading a product"""
+        product = ProductFactory()
+        product.id = None
+        product.create()
+        # Assert the product was assigned an id (not None)
+        self.assertIsNotNone(product.id)
+        found_product = Product.find(product.id)
+        self.assertEqual(found_product.id, product.id)
+        self.assertEqual(found_product.name, product.name)
+        self.assertEqual(found_product.description, product.description)
+        self.assertEqual(found_product.price, product.price)
+
+    def test_update_a_product(self):
+        """Test creating, updating then reading a product"""
+        product = ProductFactory()
+        product.id = None
+        product.create()
+        # Assert the product was assigned an id (not None)
+        self.assertIsNotNone(product.id)
+        product.name = "New Product Name Here"
+        original_id = product.id
+        product.update()
+        self.assertEqual(product.id, original_id)
+        self.assertEqual(product.name, "New Product Name Here")
+        # Fetch all products back from the system
+        products = Product.all()
+        # check only the Product created exists and that the attribute was updated
+        self.assertEqual(len(products), 1)
+        self.assertEqual(products[0].id, original_id)
+        self.assertEqual(products[0].name, "New Product Name Here")
+
+    def test_delete_a_product(self):
+        """Test creating then removing a product"""
+        product = ProductFactory()
+        product.id = None
+        product.create()
+        # Assert the product was created and is the only product in the database
+        self.assertEqual(len(Product.all()), 1)
+        # Delete the product and assert there are no more products
+        product.delete()
+        self.assertEqual(len(Product.all()), 0)
+
+    def test_list_all_products(self):
+        """Test creating then listing all products in the database"""
+        products = Product.all()
+        # assert there are no products in the database
+        self.assertEqual(len(products), 0)
+        # create 5 new products
+        for _ in range(5):
+            product = ProductFactory()
+            product.create()
+        # Get all products from the database again and assert the length is 5
+        products = Product.all()
+        self.assertEqual(len(products), 5)
+
+    def test_find_product_by_name(self):
+        """Test creating products then finding them by name"""
+        products = ProductFactory.create_batch(5)
+        # save the products in the database
+        for product in products:
+            product.create()
+        # get the name of the first product
+        name = products[0].name
+        # get the count of the products that match this name from the factory set
+        count = len([product for product in products if product.name == name])
+        # call the find_by_name function to count the products in the databse
+        found = Product.find_by_name(name)
+        # assert the count from the function matches that of of the factory set
+        self.assertEqual(found.count(), count)
+        # confirm the found names match the expected name
+        for product in found:
+            self.assertEqual(product.name, name)
+
+    def test_find_product_by_availability(self):
+        """ Test creating products then finding them by availability"""
+        products = ProductFactory.create_batch(10)
+        # create the products in the database
+        for product in products:
+            product.create()
+        # get the availability of the first product
+        available = products[0].available
+        # get the count of products that match this availability
+        count = len([product for product in products if product.available == available])
+        # call the function to get the count from the database
+        found = Product.find_by_availability(available)
+        # assert the count from the function matches that of of the factory set
+        self.assertEqual(found.count(), count)
+        # confirm the found names match the expected availability
+        for product in found:
+            self.assertEqual(product.available, available)
+
+    def test_find_product_by_category(self):
+        """ Test creating products then finding them by category"""
+        products = ProductFactory.create_batch(10)
+        # create the products in the database
+        for product in products:
+            product.create()
+        # get the category of the first product
+        category = products[0].category
+        # get the count of products that match this category
+        count = len([product for product in products if product.category == category])
+        # call the function to get the count from the database
+        found = Product.find_by_category(category)
+        # assert the count from the function matches that of of the factory set
+        self.assertEqual(found.count(), count)
+        # confirm the found names match the expected categroy
+        for product in found:
+            self.assertEqual(product.category, category)
