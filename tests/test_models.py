@@ -207,6 +207,24 @@ class TestProductModel(unittest.TestCase):
         found = Product.find_by_category(category)
         # assert the count from the function matches that of of the factory set
         self.assertEqual(found.count(), count)
-        # confirm the found names match the expected categroy
+        # confirm the found names match the expected category
         for product in found:
             self.assertEqual(product.category, category)
+
+    def test_find_product_by_price(self):
+        """ Test creating products then finding them by price"""
+        products = ProductFactory.create_batch(10)
+        # create the products in the database
+        for product in products:
+            product.create()
+        # get the price of the first product
+        price = products[0].price
+        # get the count of products that match this price
+        count = len([product for product in products if product.price == price])
+        # call the function to get the count from the database
+        found = Product.find_by_price(price)
+        # assert the count from the function matches that of of the factory set
+        self.assertEqual(found.count(), count)
+        # confirm the found names match the expected price
+        for product in found:
+            self.assertEqual(product.price, price)
