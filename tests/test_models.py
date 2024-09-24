@@ -228,3 +228,7 @@ class TestProductModel(unittest.TestCase):
         # confirm the found names match the expected price
         for product in found:
             self.assertEqual(product.price, price)
+        # try searching for the price as a string
+        found = Product.find_by_price(str(price))
+        # assert the count from the function matches that of of the factory set
+        self.assertEqual(found.count(), count)
