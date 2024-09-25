@@ -191,22 +191,73 @@ class TestProductRoutes(TestCase):
 
     def test_delete_product(self):
         """test case to Delete a product"""
-        #TO-DO
+         # create a list products containing 5 products using the _create_products() method. 
+        products = self._create_products(5)
+        # retrieve the number of products before deletion
+        count = self.get_product_count()
+        test_product= products[0]
+        # send request to delete the test product
+        response = self.client.delete(f"{BASE_URL}/{test_product.id}")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # check if the response data is empty 
+        self.assertEqual(response.data,'')
+        # send a get request to confirm the product does not exist
+        response.self.client.get(f"{BASE_URL}/{test_product.id}")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        # retrieve the count of products after the deletion operation
+        after_count = self.get_product_count()
+        # check if the new count of products is one less than the initial count
+        self.assertEqual(after_count,count-1)
 
-    def test_get_product_list(self):
-        """Test case to List All products"""
-        #TO DO
+   # def test_get_product_list(self):
+     #   """Test case to List All products"""
+     #   self._create_products(5)
+        # send a self.client.get() request to the BASE_URL
+       # response = self.client.get()
+      #  self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # get the data from the response in JSON format
+        data = response.get_json()
+        # assert that the len() of the data is 5 (the number of products you created)
+     #   self.assertEqual(len(data),5)
 
-    def test_query_by_name(self):
-        """Test case to List By Name all products matching the name"""
-        #TO DO
+   # def test_query_by_name(self):
+     #   """Test case to List By Name all products matching the name"""
+      #  products = self._create_products(5)
+        # get the name of the first product created
+      #  test_name = products[0].name
+        # count the number of products in the products list that have the same name as the test_name
+      #  matches = products.count(test_name)
+        # send an HTTP GET request to the URL specified by the BASE_URL variable, along with a query parameter "name"
+        # assert that response status code is 200, indicating a successful request (HTTP 200 OK)
+        # retrieve the JSON data from the response
+        # assert that the length of the data list (i.e., the number of products returned in the response) is equal to name_count
+        # use a for loop to iterate through the products in the data list and checks if each product's name matches the test_name
 
-    def test_query_by_category(self):
-        """Test case to List By Category products matching the category"""
-        #TO DO
+  #  def test_query_by_category(self):
+     #   """Test case to List By Category products matching the category"""
+     #   products = self._create_products(10)
+        # retrieves the category of the first product in the products list and assigns it to the variable category
+        # create a list named found, containing products from the products list whose category matches the category variable
+        # check the count of products match the specified category and assign it to the variable found_count
+        # Log a debug message indicating the count and details of the products found
+        # send an HTTP GET request to the URL specified by the BASE_URL variable, along with a query parameter "category"
+        # assert that response status code is 200, indicating a successful request (HTTP 200 OK)
+        # retrieve the JSON data from the response
+        # assert that the length of the data list (i.e., the number of products returned in the response) is equal to found_count
+        # use a for loop to check each product in the data list and verify that all returned products belong to the queried category
+        # TO DO
 
-    def test_qeury_by_availability(self):
-        """Test case to List By Availability products matching the availability"""
+    #def test_qeury_by_availability(self):
+    #    """Test case to List By Availability products matching the availability"""
+      #  products = self._create_products(10)
+        # list named available_products is initialized to store the products based on their availability status
+        # store the  count of available products.
+        # Log a debug message indicating the count and details of the available products
+        # send an HTTP GET request to the URL specified by the BASE_URL variable, along with a query parameter "available" set to true.
+        # assert that response status code is 200, indicating a successful request (HTTP 200 OK)
+        # retrieve the JSON data from the response
+        # assert that the length of the data list (i.e., the number of products returned in the response) is equal to available_count
+        # use a for loop to check each product in the data list and verify that the "available" attribute of each product is set to True
         #TO DO
 
     ######################################################################
