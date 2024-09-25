@@ -234,6 +234,9 @@ def delete_products(product_id):
     """
     app.logger.info("Request to Delete a product with id [%s]", product_id)
     # use the Product.find() method to retrieve the product by the product_id
+    product = Product.find(product_id)
     # if found, call the delete() method on the product
+    if product:
+        product.delete()
     # return and empty body ("") with a return code of status.HTTP_204_NO_CONTENT
-    # return {empty string + 204}
+    return '', status.HTTP_204_NO_CONTENT
