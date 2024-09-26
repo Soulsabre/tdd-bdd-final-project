@@ -28,6 +28,7 @@ import os
 import logging
 from decimal import Decimal
 from unittest import TestCase
+from urllib.parse import quote_plus
 from service import app
 from service.common import status
 from service.models import db, init_db, Product
@@ -187,27 +188,27 @@ class TestProductRoutes(TestCase):
         response = self.client.put(f"{BASE_URL}/{new_product['id']}", json=new_product)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         updated_product = response.get_json()
-        self.assertEqual(updated_product["description"],"unknown")
+        self.assertEqual(updated_product["description"], "unknown")
 
     def test_delete_product(self):
         """test case to Delete a product"""
-         # create a list products containing 5 products using the _create_products() method. 
+        # create a list products containing 5 products using the _create_products() method.
         products = self._create_products(5)
         # retrieve the number of products before deletion
         count = self.get_product_count()
-        test_product= products[0]
+        test_product = products[0]
         # send request to delete the test product
         response = self.client.delete(f"{BASE_URL}/{test_product.id}")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        # check if the response data is empty 
-        self.assertEqual(response.data,'')
+        # check if the response data is empty
+        self.assertEqual(len(response.data), 0)
         # send a get request to confirm the product does not exist
-        response.self.client.get(f"{BASE_URL}/{test_product.id}")
+        response = self.client.get(f"{BASE_URL}/{test_product.id}")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         # retrieve the count of products after the deletion operation
         after_count = self.get_product_count()
         # check if the new count of products is one less than the initial count
-        self.assertEqual(after_count,count-1)
+        self.assertEqual(after_count, count-1)
 
     def test_get_product_list(self):
         """Test case to List All products"""
@@ -218,7 +219,7 @@ class TestProductRoutes(TestCase):
         # get the data from the response in JSON format
         data = response.get_json()
         # assert that the len() of the data is 5 (the number of products you created)
-        self.assertEqual(len(data),5)
+        self.assertEqual(len(data), 5)
 
     def test_query_by_name(self):
         """Test case to List By Name all products matching the name"""
@@ -226,19 +227,20 @@ class TestProductRoutes(TestCase):
         # get the name of the first product created
         test_name = products[0].name
         # count the number of products in the products list that have the same name as the test_name
-        name_count = sum(p.name == test_name for p in products)
+        name_count = len([prod for prod in products if prod.name == test_name])
         # send an HTTP GET request to the URL specified by the BASE_URL variable, along with a query parameter "name"
-        response = self.client.get(f"{BASE_URL}?name={test_name}")
+        response = self.client.get(BASE_URL, query_string=f"name={quote_plus(test_name)}")
         # assert that response status code is 200, indicating a successful request (HTTP 200 OK)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # retrieve the JSON data from the response
         data = response.get_json()
-        # assert that the length of the data list (i.e., the number of products returned in the response) is equal to name_count
-        self.assertEqual(len(data),name_count)
-        # use a for loop to iterate through the products in the data list and checks if each product's name matches the test_name
+        # assert that the length of the data list is equal to name_count
+        self.assertEqual(len(data), name_count)
+        # use a for loop to iterate through the products in the data list
+        # and checks if each product's name matches the test_name
         for prod in data:
-            self.assertEqual(prod.name,test_name)
-        
+            self.assertEqual(prod["name"], test_name)
+
     def test_query_by_category(self):
         """Test case to List By Category products matching the category"""
         products = self._create_products(10)
@@ -249,39 +251,40 @@ class TestProductRoutes(TestCase):
         # check the count of products match the specified category and assign it to the variable found_count
         found_count = len(found)
         # Log a debug message indicating the count and details of the products found
-        logger.info("%s products found:%s",found_count, found.serialize())
-        # send an HTTP GET request to the URL specified by the BASE_URL variable, along with a query parameter "category"
-        response = self.client.get(f"{BASE_URL}?category={category}")
-        # assert that response status code is 200, indicating a successful request (HTTP 200 OK)
+        logging.debug("%d products found for %s", found_count, found)
+
+        # test for search by category
+        response = self.client.get(BASE_URL, query_string=f"category={category.name}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # retrieve the JSON data from the response
         data = response.get_json()
-        # assert that the length of the data list (i.e., the number of products returned in the response) is equal to found_count
-        self.assertEqual(len(data),found_count)
-        # use a for loop to check each product in the data list and verify that all returned products belong to the queried category
+        # assert that the length of the data list is equal to found_count
+        self.assertEqual(len(data), found_count)
+        # use a for loop to check each product in the data list
+        # and verify that all returned products belong to the queried category
         for prod in data:
-            self.asertEqual(prod.category,category)
+            self.assertEqual(prod["category"], category.name)
 
     def test_qeury_by_availability(self):
         """Test case to List By Availability products matching the availability"""
         products = self._create_products(10)
         # list named available_products is initialized to store the products based on their availability status
-        available_products = [prod for prod in products if prod.availabiity]
+        available_products = [prod for prod in products if prod.available is True]
         # store the  count of available products.
         available_count = len(available_products)
-        # Log a debug message indicating the count and details of the available products
-        logger.info("%s products found: %s",available_count,available_products.serialize())
-        # send an HTTP GET request to the URL specified by the BASE_URL variable, along with a query parameter "available" set to true.
-        response = self.client.get(f"{BASE_URL}?availability=True")
+
+        # send an HTTP GET request to the BASE_URL with a query parameter "available" set to true.
+        response = self.client.get(f"{BASE_URL}?available=true")
         # assert that response status code is 200, indicating a successful request (HTTP 200 OK)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # retrieve the JSON data from the response
         data = response.get_json()
-        # assert that the length of the data list (i.e., the number of products returned in the response) is equal to available_count
-        self.assertEqual(len(data),available_count)
-        # use a for loop to check each product in the data list and verify that the "available" attribute of each product is set to True
+        # assert that the length of the data list is equal to available_count
+        self.assertEqual(len(data), available_count)
+        # use a for loop to check each product in the data list
+        # and verify that the "available" attribute of each product is set to True
         for prod in data:
-            self.asertEqual(prod.availabililty,True)
+            self.assertEqual(prod["available"], True)
 
     ######################################################################
     # Utility functions
